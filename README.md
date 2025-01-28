@@ -1,6 +1,6 @@
 # Web API ASP .NET Core Essencial
 
-Este repositório contém os conceitos essenciais para a criação de Web APIs na plataforma .NET de forma objetiva e prática, abordando os principais recursos da ASP.NET Core. Utilizamos o Visual Studio 2022 como ferramenta de desenvolvimento e mostramos exemplos de como criar e consumir as APIs em aplicações **Windows Forms** e **Angular**. O curso também explora os recursos do **GraphQL**.
+Este repositório contém a implementação de uma Web API construída com **ASP.NET Core**, seguindo boas práticas de desenvolvimento e aplicando conceitos aprendidos durante o curso "Criação de Web APIs com ASP.NET Core". O objetivo é criar uma API robusta, escalável e fácil de manter, com exemplos práticos utilizando **Visual Studio 2022**.
 
 ## Sobre o Projeto
 

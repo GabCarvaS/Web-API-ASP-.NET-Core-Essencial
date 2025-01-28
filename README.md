@@ -1,33 +1,30 @@
-# Aplicação ASP .NET Core com Clean Architecture
+# Web API ASP .NET Core Essencial
 
-Este repositório contém a implementação de uma aplicação ASP .NET Core MVC seguindo os princípios da **Clean Architecture**. O objetivo é criar uma aplicação robusta, escalável e fácil de manter, aplicando boas práticas de desenvolvimento de software.
+Este repositório contém os conceitos essenciais para a criação de Web APIs na plataforma .NET de forma objetiva e prática, abordando os principais recursos da ASP.NET Core. Utilizamos o Visual Studio 2022 como ferramenta de desenvolvimento e mostramos exemplos de como criar e consumir as APIs em aplicações **Windows Forms** e **Angular**. O curso também explora os recursos do **GraphQL**.
 
 ## Sobre o Projeto
 
-A Clean Architecture refere-se à organização do projeto de forma que seja fácil de entender e modificar conforme o projeto cresce. Durante este projeto, partimos de uma solução monolítica para uma estrutura com cinco projetos distintos, cada um com responsabilidades específicas.
-
-### Estrutura do Projeto
-
-A solução final é composta pelos seguintes projetos:
-
-- **Domain**: Contém as entidades e interfaces de domínio.
-- **Application**: Implementa a lógica de negócios e casos de uso.
-- **Infrastructure**: Gerencia a persistência de dados e outras infraestruturas externas.
-- **IoC**: Configura a injeção de dependências.
-- **Presentation**: A aplicação ASP .NET Core MVC que interage com os usuários.
+Web API estruturada e escalável utilizando a **ASP.NET Core**. A solução segue boas práticas de desenvolvimento e é construída com base nos seguintes conceitos:
 
 ### Principais Conceitos Aplicados
 
-- **Clean Architecture**: Organização do código em camadas separadas para facilitar a manutenção e evolução.
-- **Domain-Driven Design (DDD)**: Foco no domínio do problema e na lógica de negócios.
-- **Padrões Repository e CQRS**: Implementação para gerenciar o acesso a dados e a separação de comandos e consultas.
-- **Princípios DRY, YAGNI e KISS**: Escrita de código claro, conciso e reutilizável.
-- **Injeção de Dependência**: Desacoplamento de componentes para facilitar testes e manutenção.
+- **Web API com ASP.NET Core**: Criação de APIs RESTful utilizando os principais recursos do **ASP.NET Core**.
+- **Model Binding e Data Annotations**: Vinculação de dados de entrada e validação de modelos.
+- **DTOs (Data Transfer Objects)**: Uso de DTOs para melhorar a comunicação entre camadas e reduzir o acoplamento.
+- **Autenticação JWT**: Implementação de autenticação segura utilizando JSON Web Tokens.
+- **Programação Assíncrona**: Utilização de métodos assíncronos para melhorar a performance da API.
+- **Swagger**: Documentação da API para facilitar o entendimento e testes.
+- **Paginação**: Implementação de paginação para controlar grandes volumes de dados.
+- **Rate Limiting e CORS**: Controle de acesso e prevenção de uso excessivo da API.
 
-## Tecnologias Utilizadas
+### Tecnologias Utilizadas
 
-- ASP .NET Core
-- C#
-- Entity Framework Core
-- Visual Studio 2022 Community
-- .NET 8.0
+- **ASP.NET Core** para criação da Web API
+- **C#** para desenvolvimento da lógica de negócios
+- **Entity Framework Core** para persistência de dados
+- **JWT (JSON Web Token)** para autenticação
+- **Visual Studio 2022** como IDE
+- **Swagger** para documentação da API
+- **Angular** e **Windows Forms** para consumir a API
+- **GraphQL** para consultas de dados
+- **.NET 8.0**

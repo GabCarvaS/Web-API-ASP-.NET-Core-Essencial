@@ -31,7 +31,11 @@ namespace APICatalogo.Logging
 
         private void WriteText(string message)
         {
-            string logPath = Path.Combine(Directory.GetCurrentDirectory(), "Logs", "log.txt");
+            string logDirectory = Path.Combine(Directory.GetCurrentDirectory(), "Logs");
+            Directory.CreateDirectory(logDirectory); 
+
+            string logPath = Path.Combine(logDirectory, "log.txt");
+
             using (StreamWriter streamWriter = new StreamWriter(logPath, true))
             {
                 try

@@ -1,5 +1,6 @@
 ﻿using APICatalogo.Context;
 using APICatalogo.Models;
+using APICatalogo.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,32 +11,33 @@ namespace APICatalogo.Controllers
     [ApiController]
     public class ProductsController : ControllerBase
     {
-        private readonly AppDbContext _context;
+        private readonly IProductRepository _repository;
 
-        public ProductsController(AppDbContext context)
+        public ProductsController(IProductRepository repository)
         {
-            _context = context;
+            _repository = repository;
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Product>>> Get()
         {
-            var products = await _context.Products.AsNoTracking().ToListAsync();
+            var products = await _repository.GetProducts().ToListAsync();
             if (products is null)
             {
                 return NotFound();
             }
             return products;
         }
+
         [HttpGet("{id:int}", Name = "ObterProduto")]
         public async Task<ActionResult<Product>> Get(int id)
         {
-            var product = await _context.Products.AsNoTracking().FirstOrDefaultAsync(p => p.ProductId == id);
+            var product = await _repository.GetProduct(id);
             if (product is null)
             {
                 return NotFound("Produto não encontrado...");
             }
-            return product;
+            return Ok(product);
         }
 
         [HttpPost]
@@ -44,11 +46,10 @@ namespace APICatalogo.Controllers
             if (product is null)
                 return BadRequest();
 
-            await _context.Products.AddAsync(product);
-            await _context.SaveChangesAsync();
+            var newProduct = await _repository.Create(product);
 
             return new CreatedAtRouteResult("ObterProduto",
-                new { id = product.ProductId }, product);
+                new { id = newProduct.ProductId }, newProduct);
         }
 
         [HttpPut("{id:int}")]
@@ -59,25 +60,31 @@ namespace APICatalogo.Controllers
                 return BadRequest();
             }
 
-            _context.Entry(product).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
+            var updated = await _repository.Update(product);
 
-            return Ok(product);
+            if (updated) 
+            { 
+                return Ok(product); 
+            }
+            else
+            {
+                return StatusCode(500, $"Falha ao atualizar o produto de id = {id}");
+            }           
         }
 
         [HttpDelete("{id:int}")]
         public async Task<ActionResult> Delete(int id)
         {
-            var produto = await _context.Products.FirstOrDefaultAsync(p => p.ProductId == id);
+            var deleted = await _repository.Delete(id);
 
-            if (produto is null)
+            if (deleted)
             {
-                return NotFound("Produto não localizado...");
+                return Ok($"Produto de id = {id} foi removido");
             }
-            _context.Products.Remove(produto);
-            await _context.SaveChangesAsync();
-
-            return Ok(produto);
+            else
+            {
+                return StatusCode(500, $"Falha ao remover o produto de id = {id}");
+            }
         }
     }
 }

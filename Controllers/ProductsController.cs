@@ -11,18 +11,17 @@ namespace APICatalogo.Controllers
     [ApiController]
     public class ProductsController : ControllerBase
     {
-        private readonly IProductRepository _productRepository;
-        //private readonly IRepository<Product> _repository;
+        private readonly IUnitOfWork _uow;
 
-        public ProductsController(IProductRepository productRepository) //IRepository<Product> repository, 
+        public ProductsController(IUnitOfWork uow)
         {
-            _productRepository = productRepository;
+            _uow = uow;
         }
 
         [HttpGet("products/{id}")]
         public async Task<ActionResult<IEnumerable<Product>>> GetProductsCategory(int id)
         {
-            var products = await _productRepository.GetProductsByCategory(id);
+            var products = await _uow.ProductRepository.GetProductsByCategory(id);
             if (products is null)
             {
                 return NotFound("Produtos não encontrados...");
@@ -33,7 +32,7 @@ namespace APICatalogo.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Product>>> Get()
         {
-            var products = await _productRepository.GetAll();
+            var products = await _uow.ProductRepository.GetAll();
             if (products is null)
             {
                 return NotFound();
@@ -44,7 +43,7 @@ namespace APICatalogo.Controllers
         [HttpGet("{id:int}", Name = "ObterProduto")]
         public async Task<ActionResult<Product>> Get(int id)
         {
-            var product = await _productRepository.Get(x => x.ProductId == id);
+            var product = await _uow.ProductRepository.Get(x => x.ProductId == id);
             if (product is null)
             {
                 return NotFound("Produto não encontrado...");
@@ -58,7 +57,8 @@ namespace APICatalogo.Controllers
             if (product is null)
                 return BadRequest();
 
-            var newProduct = await _productRepository.Create(product);
+            var newProduct = await _uow.ProductRepository.Create(product);
+            await _uow.Commit();
 
             return new CreatedAtRouteResult("ObterProduto",
                 new { id = newProduct.ProductId }, newProduct);
@@ -72,7 +72,8 @@ namespace APICatalogo.Controllers
                 return BadRequest();
             }
 
-            var updated = await _productRepository.Update(product);
+            var updated = await _uow.ProductRepository.Update(product);
+            await _uow.Commit();
 
             if (updated is null) 
             { 
@@ -87,13 +88,14 @@ namespace APICatalogo.Controllers
         [HttpDelete("{id:int}")]
         public async Task<ActionResult> Delete(int id)
         {
-            var product = await _productRepository.Get(x => x.ProductId == id);
+            var product = await _uow.ProductRepository.Get(x => x.ProductId == id);
             if (product is null)
             {
                 return NotFound("Produto não encontrado...");
             }
 
-            var deleted = await _productRepository.Delete(product);
+            var deleted = await _uow.ProductRepository.Delete(product);
+            await _uow.Commit();
 
             if (deleted is not null)
             {

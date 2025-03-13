@@ -12,12 +12,12 @@ namespace APICatalogo.Controllers
     [ApiController]
     public class CategoriesController : ControllerBase
     {
-        private readonly IRepository<Category> _repository;
+        private readonly IUnitOfWork _uow;
         private readonly ILogger<CategoriesController> _logger;
 
-        public CategoriesController(IRepository<Category> repository, ILogger<CategoriesController> logger)
-        {
-            _repository = repository;
+        public CategoriesController(IUnitOfWork uow, ILogger<CategoriesController> logger)
+        {   
+            _uow = uow;
             _logger = logger;
         }
 
@@ -25,7 +25,7 @@ namespace APICatalogo.Controllers
         [ServiceFilter(typeof(ApiLoggingFilter))]
         public async Task<ActionResult<IEnumerable<Category>>> Get()
         {
-            var categories = await _repository.GetAll();
+            var categories = await _uow.CategoryRepository.GetAll();
             return Ok(categories);      
         }
 
@@ -38,7 +38,7 @@ namespace APICatalogo.Controllers
         [HttpGet("{id:int}", Name = "ObterCategoria")]
         public async Task<ActionResult<Category>> Get(int id)
         {
-            var category = await _repository.Get(x => x.CategoryId == id);
+            var category = await _uow.CategoryRepository.Get(x => x.CategoryId == id);
 
             if (category is null)
             {
@@ -58,7 +58,8 @@ namespace APICatalogo.Controllers
                 return BadRequest("Dados inválidos...");
             }
                
-            var newCategory = await _repository.Create(category);
+            var newCategory = await _uow.CategoryRepository.Create(category);
+            await _uow.Commit();
 
             return new CreatedAtRouteResult("ObterCategoria",
                 new { id = newCategory.CategoryId }, newCategory);
@@ -73,14 +74,15 @@ namespace APICatalogo.Controllers
                 return BadRequest("Dados inválidos...");
             }
 
-            var updatedCategory = await _repository.Update(category);            
+            var updatedCategory = await _uow.CategoryRepository.Update(category);
+            await _uow.Commit();
             return Ok(updatedCategory);
         }
 
         [HttpDelete("{id:int}")]
         public async Task<ActionResult> Delete(int id)
         {
-            var category = await _repository.Get(x => x.CategoryId == id);
+            var category = await _uow.CategoryRepository.Get(x => x.CategoryId == id);
 
             if (category is null)
             {
@@ -88,7 +90,9 @@ namespace APICatalogo.Controllers
                 return NotFound($"Categoria com id = {id} não encontrada...");
             }
 
-            var removedCategory = await _repository.Delete(category);
+            var removedCategory = await _uow.CategoryRepository.Delete(category);
+            await _uow.Commit();
+
             return Ok(removedCategory);
         }
 

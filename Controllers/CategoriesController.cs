@@ -1,10 +1,8 @@
-﻿using APICatalogo.Context;
+﻿using APICatalogo.DTO_s;
+using APICatalogo.DTO_s.Mappings;
 using APICatalogo.Filters;
 using APICatalogo.Interfaces;
-using APICatalogo.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace APICatalogo.Controllers
 {
@@ -23,20 +21,18 @@ namespace APICatalogo.Controllers
 
         [HttpGet]
         [ServiceFilter(typeof(ApiLoggingFilter))]
-        public async Task<ActionResult<IEnumerable<Category>>> Get()
+        public async Task<ActionResult<IEnumerable<CategoryDTO>>> Get()
         {
             var categories = await _uow.CategoryRepository.GetAll();
-            return Ok(categories);      
-        }
+            if (categories is null) { return NotFound("Não existem categorias..."); }
 
-        [HttpGet("Products")]
-        public async Task<ActionResult<IEnumerable<Category>>> GetCategoryProducts()
-        {
-            throw new NotImplementedException();
+            var categoriesDTO = categories.ToCategoryDTOList();
+
+            return Ok(categoriesDTO);      
         }
 
         [HttpGet("{id:int}", Name = "ObterCategoria")]
-        public async Task<ActionResult<Category>> Get(int id)
+        public async Task<ActionResult<CategoryDTO>> Get(int id)
         {
             var category = await _uow.CategoryRepository.Get(x => x.CategoryId == id);
 
@@ -46,41 +42,52 @@ namespace APICatalogo.Controllers
                 return NotFound($"Categoria com id = {id} não encontrada...");
             }
 
-            return Ok(category);
+            var categoryDto = category.ToCategoryDTO();
+
+            return Ok(categoryDto);
         }
 
         [HttpPost]
-        public async Task<ActionResult> Post(Category category)
+        public async Task<ActionResult<CategoryDTO>> Post(CategoryDTO categoryDto)
         {
-            if (category is null)
+            if (categoryDto is null)
             {
                 _logger.LogWarning($"Dados inválidos...");
                 return BadRequest("Dados inválidos...");
             }
+
+            var category = categoryDto.ToCategory();
                
             var newCategory = await _uow.CategoryRepository.Create(category);
             await _uow.Commit();
 
+            var newCategoryDTO = newCategory.ToCategoryDTO();
+
             return new CreatedAtRouteResult("ObterCategoria",
-                new { id = newCategory.CategoryId }, newCategory);
+                new { id = newCategoryDTO.CategoryId }, newCategoryDTO);
         }
 
         [HttpPut("{id:int}")]
-        public async Task<ActionResult> Put(int id, Category category)
+        public async Task<ActionResult<CategoryDTO>> Put(int id, CategoryDTO categoryDto)
         {
-            if (category is null)
+            if (categoryDto is null)
             {
                 _logger.LogWarning($"Dados inválidos...");
                 return BadRequest("Dados inválidos...");
             }
 
+            var category = categoryDto.ToCategory();
+
             var updatedCategory = await _uow.CategoryRepository.Update(category);
             await _uow.Commit();
-            return Ok(updatedCategory);
+
+            var updatedCategoryDTO = updatedCategory.ToCategoryDTO();
+
+            return Ok(updatedCategoryDTO);
         }
 
         [HttpDelete("{id:int}")]
-        public async Task<ActionResult> Delete(int id)
+        public async Task<ActionResult<CategoryDTO>> Delete(int id)
         {
             var category = await _uow.CategoryRepository.Get(x => x.CategoryId == id);
 
@@ -93,7 +100,9 @@ namespace APICatalogo.Controllers
             var removedCategory = await _uow.CategoryRepository.Delete(category);
             await _uow.Commit();
 
-            return Ok(removedCategory);
+            var removedCategoryDTO = removedCategory.ToCategoryDTO();
+
+            return Ok(removedCategoryDTO);
         }
 
     }

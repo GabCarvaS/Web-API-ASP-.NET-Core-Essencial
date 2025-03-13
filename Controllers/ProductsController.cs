@@ -1,6 +1,6 @@
 ﻿using APICatalogo.Context;
+using APICatalogo.Interfaces;
 using APICatalogo.Models;
-using APICatalogo.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -11,28 +11,40 @@ namespace APICatalogo.Controllers
     [ApiController]
     public class ProductsController : ControllerBase
     {
-        private readonly IProductRepository _repository;
+        private readonly IProductRepository _productRepository;
+        //private readonly IRepository<Product> _repository;
 
-        public ProductsController(IProductRepository repository)
+        public ProductsController(IProductRepository productRepository) //IRepository<Product> repository, 
         {
-            _repository = repository;
+            _productRepository = productRepository;
+        }
+
+        [HttpGet("products/{id}")]
+        public async Task<ActionResult<IEnumerable<Product>>> GetProductsCategory(int id)
+        {
+            var products = await _productRepository.GetProductsByCategory(id);
+            if (products is null)
+            {
+                return NotFound("Produtos não encontrados...");
+            }
+            return Ok(products);
         }
 
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Product>>> Get()
         {
-            var products = await _repository.GetProducts().ToListAsync();
+            var products = await _productRepository.GetAll();
             if (products is null)
             {
                 return NotFound();
             }
-            return products;
+            return products.ToList();
         }
 
         [HttpGet("{id:int}", Name = "ObterProduto")]
         public async Task<ActionResult<Product>> Get(int id)
         {
-            var product = await _repository.GetProduct(id);
+            var product = await _productRepository.Get(x => x.ProductId == id);
             if (product is null)
             {
                 return NotFound("Produto não encontrado...");
@@ -46,7 +58,7 @@ namespace APICatalogo.Controllers
             if (product is null)
                 return BadRequest();
 
-            var newProduct = await _repository.Create(product);
+            var newProduct = await _productRepository.Create(product);
 
             return new CreatedAtRouteResult("ObterProduto",
                 new { id = newProduct.ProductId }, newProduct);
@@ -60,9 +72,9 @@ namespace APICatalogo.Controllers
                 return BadRequest();
             }
 
-            var updated = await _repository.Update(product);
+            var updated = await _productRepository.Update(product);
 
-            if (updated) 
+            if (updated is null) 
             { 
                 return Ok(product); 
             }
@@ -75,9 +87,15 @@ namespace APICatalogo.Controllers
         [HttpDelete("{id:int}")]
         public async Task<ActionResult> Delete(int id)
         {
-            var deleted = await _repository.Delete(id);
+            var product = await _productRepository.Get(x => x.ProductId == id);
+            if (product is null)
+            {
+                return NotFound("Produto não encontrado...");
+            }
 
-            if (deleted)
+            var deleted = await _productRepository.Delete(product);
+
+            if (deleted is not null)
             {
                 return Ok($"Produto de id = {id} foi removido");
             }

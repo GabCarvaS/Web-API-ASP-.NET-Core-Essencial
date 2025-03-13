@@ -1,7 +1,7 @@
 ﻿using APICatalogo.Context;
 using APICatalogo.Filters;
+using APICatalogo.Interfaces;
 using APICatalogo.Models;
-using APICatalogo.Repositories;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,10 +12,10 @@ namespace APICatalogo.Controllers
     [ApiController]
     public class CategoriesController : ControllerBase
     {
-        private readonly ICategoryRepository _repository;
+        private readonly IRepository<Category> _repository;
         private readonly ILogger<CategoriesController> _logger;
 
-        public CategoriesController(ICategoryRepository repository, ILogger<CategoriesController> logger)
+        public CategoriesController(IRepository<Category> repository, ILogger<CategoriesController> logger)
         {
             _repository = repository;
             _logger = logger;
@@ -25,7 +25,7 @@ namespace APICatalogo.Controllers
         [ServiceFilter(typeof(ApiLoggingFilter))]
         public async Task<ActionResult<IEnumerable<Category>>> Get()
         {
-            var categories = await _repository.GetCategories();
+            var categories = await _repository.GetAll();
             return Ok(categories);      
         }
 
@@ -38,7 +38,7 @@ namespace APICatalogo.Controllers
         [HttpGet("{id:int}", Name = "ObterCategoria")]
         public async Task<ActionResult<Category>> Get(int id)
         {
-            var category = await _repository.GetCategory(id);
+            var category = await _repository.Get(x => x.CategoryId == id);
 
             if (category is null)
             {
@@ -80,7 +80,7 @@ namespace APICatalogo.Controllers
         [HttpDelete("{id:int}")]
         public async Task<ActionResult> Delete(int id)
         {
-            var category = await _repository.GetCategory(id);
+            var category = await _repository.Get(x => x.CategoryId == id);
 
             if (category is null)
             {
@@ -88,7 +88,7 @@ namespace APICatalogo.Controllers
                 return NotFound($"Categoria com id = {id} não encontrada...");
             }
 
-            var removedCategory = await _repository.Delete(id);
+            var removedCategory = await _repository.Delete(category);
             return Ok(removedCategory);
         }
 

@@ -2,6 +2,7 @@
 using APICatalogo.DTO_s;
 using APICatalogo.Interfaces;
 using APICatalogo.Models;
+using APICatalogo.Pagination;
 using AutoMapper;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -47,6 +48,16 @@ namespace APICatalogo.Controllers
             }
 
             var productsDTO = _mapper.Map<IEnumerable<ProductDTO>>(products);
+            return Ok(productsDTO);
+        }
+
+        [HttpGet("Pagination")]
+        public async Task<ActionResult<IEnumerable<ProductDTO>>> GetProducts([FromQuery] ProductsParameters productsParameters)
+        {
+            var products = await _uow.ProductRepository.GetProducts(productsParameters);
+
+            var productsDTO = _mapper.Map<IEnumerable<ProductDTO>>(products);
+
             return Ok(productsDTO);
         }
 

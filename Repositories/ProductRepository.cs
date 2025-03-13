@@ -18,19 +18,35 @@ namespace APICatalogo.Repositories
             return ordenetProducts;
         }
 
-        //public async Task<IEnumerable<Product>> GetProducts(ProductsParameters producstsParameters)
-        //{
-        //    var products = await GetAll();
-        //    return products
-        //        .OrderBy(x => x.Name)
-        //        .Skip((producstsParameters.PageNumber - 1) * producstsParameters.PageSize)
-        //        .Take(producstsParameters.PageSize) .ToList();
-        //}
-
         public async Task<IEnumerable<Product>> GetProductsByCategory(int id)
         {
             var products = await GetAll();
             return products.Where(x => x.CategoryId == id);
+        }
+
+        public async Task<PagedList<Product>> GetProductsFiltredByPrice(ProductsPriceFilter productsPriceFilterParameters)
+        {
+            var productsList = await GetAll();
+            var productsQuery = productsList.OrderBy(p => p.ProductId).AsQueryable();
+
+            if(productsPriceFilterParameters.Price.HasValue && !string.IsNullOrEmpty(productsPriceFilterParameters.PriceCriterion))
+            {
+                if (productsPriceFilterParameters.PriceCriterion.Equals("maior", StringComparison.OrdinalIgnoreCase))
+                {
+                    productsQuery = productsQuery.Where(p => p.Price > productsPriceFilterParameters.Price.Value).OrderBy(p => p.Price);
+                }
+                else if (productsPriceFilterParameters.PriceCriterion.Equals("menor", StringComparison.OrdinalIgnoreCase))
+                {
+                    productsQuery = productsQuery.Where(p => p.Price < productsPriceFilterParameters.Price.Value).OrderBy(p => p.Price);
+                }
+                else if (productsPriceFilterParameters.PriceCriterion.Equals("igual", StringComparison.OrdinalIgnoreCase))
+                {
+                    productsQuery = productsQuery.Where(p => p.Price == productsPriceFilterParameters.Price.Value).OrderBy(p => p.Price);
+                }
+            }
+
+            var filtredProducts = PagedList<Product>.ToPagedList(productsQuery, productsPriceFilterParameters.PageNumber, productsPriceFilterParameters.PageSize);
+            return filtredProducts;
         }
     }
 }

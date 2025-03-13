@@ -57,7 +57,20 @@ namespace APICatalogo.Controllers
         {
             var products = await _uow.ProductRepository.GetProducts(productsParameters);
 
-            var metadata = new 
+            return GetProducts(products);
+        }
+
+        [HttpGet("filter/price/pagination")]
+        public async Task<ActionResult<IEnumerable<ProductDTO>>> GetProductsFiltredByPrice([FromQuery] ProductsPriceFilter productsParameters)
+        {
+            var products = await _uow.ProductRepository.GetProductsFiltredByPrice(productsParameters);
+
+            return GetProducts(products);
+        }
+
+        private ActionResult<IEnumerable<ProductDTO>> GetProducts(PagedList<Product> products)
+        {
+            var metadata = new
             {
                 products.TotalCount,
                 products.PageSize,

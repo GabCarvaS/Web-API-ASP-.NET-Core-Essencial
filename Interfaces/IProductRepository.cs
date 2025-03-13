@@ -7,6 +7,6 @@ namespace APICatalogo.Interfaces
     {
         Task<IEnumerable<Product>> GetProductsByCategory(int id);
         Task<PagedList<Product>> GetProducts(ProductsParameters producstsParameters);
-        //Task<IEnumerable<Product>> GetProducts(ProductsParameters producstsParameters);
+        Task<PagedList<Product>> GetProductsFiltredByPrice(ProductsPriceFilter productsPriceFilterParameters);
     }
 }

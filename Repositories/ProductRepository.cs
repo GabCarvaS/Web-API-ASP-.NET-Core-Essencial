@@ -2,6 +2,7 @@
 using APICatalogo.Interfaces;
 using APICatalogo.Models;
 using APICatalogo.Pagination;
+using X.PagedList;
 
 namespace APICatalogo.Repositories
 {
@@ -9,13 +10,13 @@ namespace APICatalogo.Repositories
     {
         public ProductRepository(AppDbContext context) : base(context) { }
 
-        public async Task<PagedList<Product>> GetProducts(ProductsParameters producstsParameters)
+        public async Task<IPagedList<Product>> GetProducts(ProductsParameters producstsParameters)
         {
             var productsList = await GetAll();
             var productsQuery = productsList.OrderBy(p => p.ProductId).AsQueryable();
 
-            var ordenetProducts = PagedList<Product>.ToPagedList(productsQuery, producstsParameters.PageNumber, producstsParameters.PageSize);
-            return ordenetProducts;
+            var ordenedProducts = await productsQuery.ToPagedListAsync(producstsParameters.PageNumber, producstsParameters.PageSize);
+            return ordenedProducts;
         }
 
         public async Task<IEnumerable<Product>> GetProductsByCategory(int id)
@@ -24,7 +25,7 @@ namespace APICatalogo.Repositories
             return products.Where(x => x.CategoryId == id);
         }
 
-        public async Task<PagedList<Product>> GetProductsFiltredByPrice(ProductsPriceFilter productsPriceFilterParameters)
+        public async Task<IPagedList<Product>> GetProductsFiltredByPrice(ProductsPriceFilter productsPriceFilterParameters)
         {
             var productsList = await GetAll();
             var productsQuery = productsList.OrderBy(p => p.ProductId).AsQueryable();
@@ -45,7 +46,7 @@ namespace APICatalogo.Repositories
                 }
             }
 
-            var filtredProducts = PagedList<Product>.ToPagedList(productsQuery, productsPriceFilterParameters.PageNumber, productsPriceFilterParameters.PageSize);
+            var filtredProducts = await productsQuery.ToPagedListAsync(productsPriceFilterParameters.PageNumber, productsPriceFilterParameters.PageSize);
             return filtredProducts;
         }
     }

@@ -18,13 +18,15 @@ namespace APICatalogo.Controllers
         private readonly IConfiguration _configuration;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly RoleManager<IdentityRole> _roleManager;
+        private readonly ILogger<AuthController> _logger;
 
-        public AuthController(ITokenService tokenService, IConfiguration configuration, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager)
+        public AuthController(ITokenService tokenService, IConfiguration configuration, UserManager<ApplicationUser> userManager, RoleManager<IdentityRole> roleManager, ILogger<AuthController> logger)
         {
             _tokenService = tokenService;
             _configuration = configuration;
             _userManager = userManager;
             _roleManager = roleManager;
+            _logger = logger;
         }
 
         [HttpPost]
@@ -39,6 +41,7 @@ namespace APICatalogo.Controllers
                 {
                     new Claim(ClaimTypes.Name, user.UserName!),
                     new Claim(ClaimTypes.Email, user.Email!),
+                    new Claim("id", user.UserName!),
                     new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
                 };
 
@@ -133,9 +136,10 @@ namespace APICatalogo.Controllers
             });
         }
 
-        [Authorize]
         [HttpPost]
+        [Authorize(Policy = "ExclusiveOnly")]
         [Route("revoke/{username}")]
+        [Authorize(Policy = "ExclusivePoliceOnly")]
         public async Task<IActionResult> Revoke(string username)
         {
             var user = await _userManager.FindByNameAsync(username);
@@ -149,5 +153,52 @@ namespace APICatalogo.Controllers
             await _userManager.UpdateAsync(user);
             return NoContent();
         }
+
+        [HttpPost]
+        [Authorize(Policy = "SuperAdminOnly")]
+        [Route("CreateRole")]
+        public async Task<IActionResult> CreateRole(string roleName)
+        {
+            var roleExists = await _roleManager.RoleExistsAsync(roleName);
+            if (!roleExists)
+            {
+                var roleResult = await _roleManager.CreateAsync(new IdentityRole(roleName));
+                if (roleResult.Succeeded)
+                {
+                    _logger.LogInformation(1, "Roles Added");
+                    return StatusCode(StatusCodes.Status200OK, new Response {Status = "Success", Messsage = $"Role {roleName} added sucessfully" });
+                }
+                else
+                {
+                    _logger.LogInformation(2, "Error");
+                    return StatusCode(StatusCodes.Status400BadRequest, new Response { Status = "Error", Messsage = $"Issue adding the new {roleName} role" });
+                }
+            }
+            return StatusCode(StatusCodes.Status400BadRequest, new Response { Status = "Error", Messsage = $"Role already exist" });
+        }
+
+        [HttpPost]
+        [Authorize(Policy = "SuperAdminOnly")]
+        [Route("AddUserRole")]
+        public async Task<IActionResult> AddUserRole(string email, string roleName)
+        {
+            var user = await _userManager.FindByEmailAsync(email);
+            if (user != null)
+            {
+                var result = await _userManager.AddToRoleAsync(user, roleName);
+                if (result.Succeeded)
+                {
+                    _logger.LogInformation(1, $"User {user.Email} added tp the {roleName} role");
+                    return StatusCode(StatusCodes.Status200OK, new Response { Status = "Success", Messsage = $"User {user.Email} added to the {roleName} role" });
+                }
+                else
+                {
+                    _logger.LogInformation(2, $"Error: Unable to add user {user.Email} to the {roleName} role");
+                    return StatusCode(StatusCodes.Status400BadRequest, new Response { Status = "Success", Messsage = $"Error: Unable to add user {user.Email} to the {roleName} role" });
+                }
+            }
+            return BadRequest(new {error = "User not found"});
+        }
+
     }
 }

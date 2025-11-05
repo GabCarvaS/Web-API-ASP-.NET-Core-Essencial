@@ -127,6 +127,7 @@ namespace APICatalogo.Controllers
             return Ok(updatedCategoryDTO);
         }
 
+        [Authorize(Policy = "AdminOnly")]
         [HttpDelete("{id:int}")]
         public async Task<ActionResult<CategoryDTO>> Delete(int id)
         {

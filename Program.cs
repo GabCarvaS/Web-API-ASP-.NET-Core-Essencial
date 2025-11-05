@@ -105,6 +105,18 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+    options.AddPolicy("SuperAdmin", policy => policy.RequireRole("Admin").RequireClaim("id", "gabriel"));
+
+    options.AddPolicy("UserOnly", policy => policy.RequireRole("User"));
+    options.AddPolicy("ExclusivePoliceOnly", policy => 
+                                                policy.RequireAssertion(context => 
+                                                        context.User.HasClaim(claim => 
+                                                            claim.Type == "id" && claim.Value == "gabriel" || context.User.IsInRole("SuperAdmin"))));
+});
+
 builder.Services.AddScoped<ApiLoggingFilter>();
 builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
